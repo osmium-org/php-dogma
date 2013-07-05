@@ -329,6 +329,69 @@ ZEND_END_ARG_INFO()
 
 
 
+ZEND_BEGIN_ARG_INFO(arginfo_type_has_effect, 0)
+ZEND_ARG_INFO(0, typeid)
+ZEND_ARG_INFO(0, state)
+ZEND_ARG_INFO(0, effectid)
+ZEND_ARG_INFO(1, has_it)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_type_has_active_effects, 0)
+ZEND_ARG_INFO(0, typeid)
+ZEND_ARG_INFO(1, activable)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_type_has_overload_effects, 0)
+ZEND_ARG_INFO(0, typeid)
+ZEND_ARG_INFO(1, overloadable)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_type_base_attribute, 0)
+ZEND_ARG_INFO(0, typeid)
+ZEND_ARG_INFO(0, attributeid)
+ZEND_ARG_INFO(1, base_value)
+ZEND_END_ARG_INFO()
+
+
+
+ZEND_BEGIN_ARG_INFO(arginfo_get_number_of_module_cycles_before_reload, 0)
+ZEND_ARG_INFO(0, context)
+ZEND_ARG_INFO(0, key)
+ZEND_ARG_INFO(1, num_cycles)
+ZEND_END_ARG_INFO()
+
+
+
+ZEND_BEGIN_ARG_INFO(arginfo_get_capacitor, 0)
+ZEND_ARG_INFO(0, context)
+ZEND_ARG_INFO(0, include_reload_time)
+ZEND_ARG_INFO(1, delta)
+ZEND_ARG_INFO(1, stable)
+ZEND_ARG_INFO(1, param)
+ZEND_END_ARG_INFO()
+
+
+
+ZEND_BEGIN_ARG_INFO(arginfo_get_nth_type_effect_with_attributes, 0)
+ZEND_ARG_INFO(0, typeid)
+ZEND_ARG_INFO(0, n)
+ZEND_ARG_INFO(1, out_effectid)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_get_location_effect_attributes, 0)
+ZEND_ARG_INFO(0, context)
+ZEND_ARG_INFO(0, location)
+ZEND_ARG_INFO(0, effectid)
+ZEND_ARG_INFO(1, duration)
+ZEND_ARG_INFO(1, trackingspeed)
+ZEND_ARG_INFO(1, discharge)
+ZEND_ARG_INFO(1, range)
+ZEND_ARG_INFO(1, falloff)
+ZEND_ARG_INFO(1, fittingusagechance)
+ZEND_END_ARG_INFO()
+
+
+
 const zend_function_entry dogma_functions[] = {
 	/* Core - dogma.h */
 
@@ -387,6 +450,18 @@ const zend_function_entry dogma_functions[] = {
 	DEF_DOGMA_FE(get_drone_attribute)
 
 	DEF_DOGMA_FE(get_chance_based_effect_chance)
+
+	DEF_DOGMA_FE(type_has_effect)
+	DEF_DOGMA_FE(type_has_active_effects)
+	DEF_DOGMA_FE(type_has_overload_effects)
+	DEF_DOGMA_FE(type_base_attribute)
+
+	DEF_DOGMA_FE(get_number_of_module_cycles_before_reload)
+
+	DEF_DOGMA_FE(get_capacitor)
+
+	DEF_DOGMA_FE(get_nth_type_effect_with_attributes)
+	DEF_DOGMA_FE(get_location_effect_attributes)
 
 	/* Extra - dogma-extra.h */
 
@@ -1353,6 +1428,205 @@ ZEND_FUNCTION(dogma_get_affectors) {
 	}
 
 	dogma_free_affector_list(list);
+	RETURN_LONG(ret);
+}
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+
+ZEND_FUNCTION(dogma_type_has_effect) {
+	long type;
+	long state;
+	long effect;
+	zval* zout;
+	bool out;
+	int ret;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lllz", &type, &state, &effect, &zout) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ret = dogma_type_has_effect((dogma_typeid_t)type, (dogma_state_t)state, (dogma_effectid_t)effect, &out);
+	convert_to_null(zout);
+	ZVAL_BOOL(zout, (zend_bool)out);
+	RETURN_LONG(ret);
+}
+
+ZEND_FUNCTION(dogma_type_has_active_effects) {
+	long type;
+	zval* zout;
+	bool out;
+	int ret;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lz", &type, &zout) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ret = dogma_type_has_active_effects((dogma_typeid_t)type, &out);
+	convert_to_null(zout);
+	ZVAL_BOOL(zout, (zend_bool)out);
+	RETURN_LONG(ret);
+}
+
+ZEND_FUNCTION(dogma_type_has_overload_effects) {
+	long type;
+	zval* zout;
+	bool out;
+	int ret;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lz", &type, &zout) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ret = dogma_type_has_overload_effects((dogma_typeid_t)type, &out);
+	convert_to_null(zout);
+	ZVAL_BOOL(zout, (zend_bool)out);
+	RETURN_LONG(ret);
+}
+
+ZEND_FUNCTION(dogma_type_base_attribute) {
+	long type;
+	long attribute;
+	zval* zout;
+	double out;
+	int ret;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "llz", &type, &attribute, &zout) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ret = dogma_type_base_attribute((dogma_typeid_t)type, (dogma_attributeid_t)attribute, &out);
+	convert_to_null(zout);
+	ZVAL_DOUBLE(zout, out);
+	RETURN_LONG(ret);
+}
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+
+ZEND_FUNCTION(dogma_get_number_of_module_cycles_before_reload) {
+	zval* zctx;
+	dogma_context_t* ctx;
+	long key;
+	zval* zout;
+	int num_cycles;
+	int ret;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz", &zctx, &key, &zout) == FAILURE) {
+		RETURN_FALSE;
+	}
+	GET_CTX(zctx, ctx);
+
+	ret = dogma_get_number_of_module_cycles_before_reload(
+		ctx, (dogma_key_t)key, &num_cycles
+	);
+	convert_to_null(zout);
+	ZVAL_LONG(zout, (long)num_cycles);
+	RETURN_LONG(ret);
+}
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+
+ZEND_FUNCTION(dogma_get_capacitor) {
+	zval* zctx;
+	dogma_context_t* ctx;
+	zend_bool reload;
+	zval* zdelta;
+	double delta;
+	zval* zstable;
+	bool stable;
+	zval* zparam;
+	double param;
+	int ret;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rbzzz", &zctx, &reload,
+	                         &zdelta, &zstable, &zparam) == FAILURE) {
+		RETURN_FALSE;
+	}
+	GET_CTX(zctx, ctx);
+
+	ret = dogma_get_capacitor(ctx, (bool)reload, &delta, &stable, &param);
+	convert_to_null(zdelta);
+	convert_to_null(zstable);
+	convert_to_null(zparam);
+	ZVAL_DOUBLE(zdelta, delta);
+	ZVAL_BOOL(zstable, (zend_bool)stable);
+	ZVAL_DOUBLE(zparam, param);
+	RETURN_LONG(ret);
+}
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+
+ZEND_FUNCTION(dogma_get_nth_type_effect_with_attributes) {
+	long type, n;
+	zval* zout;
+	dogma_effectid_t out;
+	int ret;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "llz", &type, &n, &zout) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ret = dogma_get_nth_type_effect_with_attributes((dogma_typeid_t)type, (unsigned int)n, &out);
+	convert_to_null(zout);
+	ZVAL_LONG(zout, out);
+	RETURN_LONG(ret);
+}
+
+ZEND_FUNCTION(dogma_get_location_effect_attributes) {
+	zval* zctx;
+	dogma_context_t* ctx;
+	zval* zloc;
+	dogma_location_t loc;
+	long effect;
+	double dur, tra, dis, ran, fal, fuc;
+	zval* zdur;
+	zval* ztra;
+	zval* zdis;
+	zval* zran;
+	zval* zfal;
+	zval* zfuc;
+	int ret;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzlzzzzzz", &zctx, &zloc, &effect,
+	                         &zdur, &ztra, &zdis, &zran, &zfal, &zfuc) == FAILURE) {
+		RETURN_FALSE;
+	}
+	if(!dogma_get_location_from_zval(zloc, &loc)) {
+		RETURN_FALSE;
+	}
+	GET_CTX(zctx, ctx);
+
+	ret = dogma_get_location_effect_attributes(
+		ctx, loc, effect,
+		&dur, &tra, &dis, &ran, &fal, &fuc
+	);
+	convert_to_null(zdur);
+	convert_to_null(ztra);
+	convert_to_null(zdis);
+	convert_to_null(zran);
+	convert_to_null(zfal);
+	convert_to_null(zfuc);
+	ZVAL_DOUBLE(zdur, dur);
+	ZVAL_DOUBLE(ztra, tra);
+	ZVAL_DOUBLE(zdis, dis);
+	ZVAL_DOUBLE(zran, ran);
+	ZVAL_DOUBLE(zfal, fal);
+	ZVAL_DOUBLE(zfuc, fuc);
 	RETURN_LONG(ret);
 }
 

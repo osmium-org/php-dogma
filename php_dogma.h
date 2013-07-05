@@ -97,6 +97,18 @@ ZEND_FUNCTION(dogma_get_chance_based_effect_chance);
 
 ZEND_FUNCTION(dogma_get_affectors);
 
+ZEND_FUNCTION(dogma_type_has_effect);
+ZEND_FUNCTION(dogma_type_has_active_effects);
+ZEND_FUNCTION(dogma_type_has_overload_effects);
+ZEND_FUNCTION(dogma_type_base_attribute);
+
+ZEND_FUNCTION(dogma_get_number_of_module_cycles_before_reload);
+
+ZEND_FUNCTION(dogma_get_capacitor);
+
+ZEND_FUNCTION(dogma_get_nth_type_effect_with_attributes);
+ZEND_FUNCTION(dogma_get_location_effect_attributes);
+
 #ifdef ZTS
 #define DOGMA_G(v) TSRMG(dogma_globals_id, zend_dogma_globals *, v)
 #else
