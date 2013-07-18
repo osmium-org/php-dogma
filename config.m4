@@ -7,7 +7,7 @@ PHP_ARG_WITH(dogma, for dogma support,
 [  --with-dogma             Include dogma support])
 
 if test "$PHP_DOGMA" != "no"; then
-	DOGMA_CFLAGS=`pkg-config --cflags libdogma`
+	DOGMA_CFLAGS="`pkg-config --cflags libdogma` -std=c99"
 	DOGMA_LDFLAGS=`pkg-config --libs libdogma`
 	PHP_EVAL_LIBLINE([$DOGMA_LDFLAGS], DOGMA_SHARED_LIBADD)
 	PHP_CHECK_LIBRARY(dogma, dogma_init, [], [ AC_MSG_ERROR([dogma library not found]) ], [$DOGMA_LDFLAGS])
