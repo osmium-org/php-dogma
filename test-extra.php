@@ -25,6 +25,8 @@ assert(dogma_type_has_active_effects(TYPE_125mmGatlingAutoCannonII, $able) === D
 assert($able === true);
 assert(dogma_type_has_overload_effects(TYPE_125mmGatlingAutoCannonII, $able) === DOGMA_OK);
 assert($able === true);
+assert(dogma_type_has_projectable_effects(TYPE_StasisWebifierI, $projectable) === DOGMA_OK);
+assert($projectable === true);
 assert(dogma_type_base_attribute(TYPE_Rifter, ATT_LauncherSlotsLeft, $slots) === DOGMA_OK);
 assert($slots === 2.0);
 

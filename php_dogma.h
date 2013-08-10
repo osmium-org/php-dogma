@@ -100,6 +100,7 @@ ZEND_FUNCTION(dogma_get_affectors);
 ZEND_FUNCTION(dogma_type_has_effect);
 ZEND_FUNCTION(dogma_type_has_active_effects);
 ZEND_FUNCTION(dogma_type_has_overload_effects);
+ZEND_FUNCTION(dogma_type_has_projectable_effects);
 ZEND_FUNCTION(dogma_type_base_attribute);
 
 ZEND_FUNCTION(dogma_get_number_of_module_cycles_before_reload);

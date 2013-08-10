@@ -346,6 +346,11 @@ ZEND_ARG_INFO(0, typeid)
 ZEND_ARG_INFO(1, overloadable)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_type_has_projectable_effects, 0)
+ZEND_ARG_INFO(0, typeid)
+ZEND_ARG_INFO(1, projectable)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO(arginfo_type_base_attribute, 0)
 ZEND_ARG_INFO(0, typeid)
 ZEND_ARG_INFO(0, attributeid)
@@ -454,6 +459,7 @@ const zend_function_entry dogma_functions[] = {
 	DEF_DOGMA_FE(type_has_effect)
 	DEF_DOGMA_FE(type_has_active_effects)
 	DEF_DOGMA_FE(type_has_overload_effects)
+	DEF_DOGMA_FE(type_has_projectable_effects)
 	DEF_DOGMA_FE(type_base_attribute)
 
 	DEF_DOGMA_FE(get_number_of_module_cycles_before_reload)
@@ -1482,6 +1488,22 @@ ZEND_FUNCTION(dogma_type_has_overload_effects) {
 	}
 
 	ret = dogma_type_has_overload_effects((dogma_typeid_t)type, &out);
+	convert_to_null(zout);
+	ZVAL_BOOL(zout, (zend_bool)out);
+	RETURN_LONG(ret);
+}
+
+ZEND_FUNCTION(dogma_type_has_projectable_effects) {
+	long type;
+	zval* zout;
+	bool out;
+	int ret;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lz", &type, &zout) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ret = dogma_type_has_projectable_effects((dogma_typeid_t)type, &out);
 	convert_to_null(zout);
 	ZVAL_BOOL(zout, (zend_bool)out);
 	RETURN_LONG(ret);
