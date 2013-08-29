@@ -52,6 +52,27 @@ assert($stable === true);
 assert($p === 100.0);
 
 
+
+dogma_init_context($foo);
+dogma_init_context($bar);
+$baz = $foo;
+$baz2 =& $bar;
+
+assert(dogma_get_hashcode($foo) !== false);
+assert(dogma_get_hashcode($bar) !== false);
+assert(dogma_get_hashcode($foo) === dogma_get_hashcode($baz));
+assert(dogma_get_hashcode($bar) === dogma_get_hashcode($baz2));
+assert(dogma_get_hashcode($foo) !== dogma_get_hashcode($bar));
+
+
+
+dogma_init_context($foo);
+assert(dogma_get_capacitor_all($foo, false, $result) === DOGMA_OK);
+assert(count($result) === 1);
+assert(array_keys($result)[0] === dogma_get_hashcode($foo));
+
+
+
 assert(error_get_last() === null);
 
 echo "All extra tests passed. Fantastic!\n";

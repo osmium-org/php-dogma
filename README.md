@@ -99,6 +99,10 @@ Core
 Extra
 -----
 
+* The extension provides a helper function, `dogma_get_hashcode()`,
+  which returns an integer value. This is useful for comparing
+  contexts (you can also use `===` on the context resources).
+
 * `dogma_get_affectors()` only take three arguments (instead of four):
   a dogma context resource, a location and the third parameter is a
   reference that will be set to an array of affectors. Each element of
@@ -140,6 +144,38 @@ Extra
   */
   ~~~
 
-* The function `dogma_free_affector_list()` is not present in PHP, as
-  the list is copied to the array and freed internally. The generated
-  array will be garbage collected just like any other PHP array.
+* `dogma_get_capacitor_all()` only takes three arguments: a dogma
+  context resource, a boolean (whether to include reload time) and a
+  reference that will be set to an array of results. The result will
+  have keys that are hashcodes of contexts, and the values will be
+  arrays resembling the `dogma_simple_capacitor_t` structure. Here is
+  an example for reference:
+
+  ~~~
+  dogma_init_context($ctx);
+  dogma_get_capacitor_all($ctx, false, $arr);
+  var_dump(dogma_get_hashcode($ctx));
+  print_r($arr);
+
+  /* Gives something similar to:
+
+  int(52491280)
+  Array
+  (
+      [52491280] => Array
+          (
+              [capacity] => 0
+              [delta] => 0
+              [stable] => 1
+              [stable_fraction] => 1
+          )
+
+  )
+
+  */
+  ~~~
+
+* The function `dogma_free_affector_list()` and
+  `dogma_free_capacitor_list()` are not present in PHP, as the list is
+  copied to the array and freed internally. The generated array will
+  be garbage collected just like any other PHP array.
