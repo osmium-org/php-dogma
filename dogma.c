@@ -497,7 +497,7 @@ zend_module_entry dogma_module_entry = {
 	PHP_RINIT(dogma),
 	PHP_RSHUTDOWN(dogma),
 	PHP_MINFO(dogma),
-	"0.1.0",
+	"1.1.0",
 	STANDARD_MODULE_PROPERTIES
 };
 
