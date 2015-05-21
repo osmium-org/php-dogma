@@ -1,5 +1,5 @@
 /* php-dogma
- * Copyright (C) 2013 Romain "Artefact2" Dalmaso <artefact2@gmail.com>
+ * Copyright (C) 2013, 2015 Romain "Artefact2" Dalmaso <artefact2@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -42,6 +42,9 @@ PHP_MINFO_FUNCTION(dogma);
 ZEND_FUNCTION(dogma_init_context);
 ZEND_FUNCTION(dogma_free_context);
 ZEND_FUNCTION(dogma_get_hashcode);
+
+ZEND_FUNCTION(dogma_add_area_beacon);
+ZEND_FUNCTION(dogma_remove_area_beacon);
 
 ZEND_FUNCTION(dogma_add_implant);
 ZEND_FUNCTION(dogma_remove_implant);

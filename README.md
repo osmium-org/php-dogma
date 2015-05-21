@@ -6,7 +6,7 @@ PHP bindings of the libdogma library.
 Released under the GNU Affero General Public License, version 3 or
 later. The full license text is included in the `COPYING` file.
 
-Requires libdogma ≥ 1.1.0 and pkg-config (and probably PHP ≥ 5.4 and a
+Requires libdogma ≥ 1.2.0 and pkg-config (and probably PHP ≥ 5.4 and a
 C11-aware compiler, like `clang ≥ 3.1` or `gcc ≥ 4.7`).
 
 Main libdogma repository: https://github.com/Artefact2/libdogma

@@ -1,5 +1,5 @@
 /* php-dogma
- * Copyright (C) 2013 Romain "Artefact2" Dalmaso <artefact2@gmail.com>
+ * Copyright (C) 2013, 2015 Romain "Artefact2" Dalmaso <artefact2@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -59,6 +59,19 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_get_hashcode, 0)
 ZEND_ARG_INFO(0, context)
+ZEND_END_ARG_INFO()
+
+
+
+ZEND_BEGIN_ARG_INFO(arginfo_add_area_beacon, 0)
+ZEND_ARG_INFO(0, context)
+ZEND_ARG_INFO(0, typeid)
+ZEND_ARG_INFO(1, key)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_remove_area_beacon, 0)
+ZEND_ARG_INFO(0, context)
+ZEND_ARG_INFO(0, key)
 ZEND_END_ARG_INFO()
 
 
@@ -414,6 +427,9 @@ const zend_function_entry dogma_functions[] = {
 	DEF_DOGMA_FE(free_context)
 	DEF_DOGMA_FE(get_hashcode)
 
+	DEF_DOGMA_FE(add_area_beacon)
+	DEF_DOGMA_FE(remove_area_beacon)
+
 	DEF_DOGMA_FE(add_implant)
 	DEF_DOGMA_FE(remove_implant)
 
@@ -497,7 +513,7 @@ zend_module_entry dogma_module_entry = {
 	PHP_RINIT(dogma),
 	PHP_RSHUTDOWN(dogma),
 	PHP_MINFO(dogma),
-	"1.1.0",
+	"1.2.0",
 	STANDARD_MODULE_PROPERTIES
 };
 
@@ -688,6 +704,45 @@ ZEND_FUNCTION(dogma_get_hashcode) {
 	}
 
 	RETURN_FALSE;
+}
+
+
+
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+
+
+ZEND_FUNCTION(dogma_add_area_beacon) {
+	zval* zctx;
+	dogma_context_t* ctx;
+	long implant;
+	zval* zkey;
+	dogma_key_t key;
+	int ret;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz", &zctx, &implant, &zkey) == FAILURE) {
+		RETURN_FALSE;
+	}
+	GET_CTX(zctx, ctx);
+
+	ret = dogma_add_area_beacon(ctx, (dogma_typeid_t)implant, &key);
+	convert_to_null(zkey);
+	ZVAL_LONG(zkey, (long)key);
+
+	RETURN_LONG(ret);
+}
+
+ZEND_FUNCTION(dogma_remove_area_beacon) {
+	zval* zctx;
+	dogma_context_t* ctx;
+	long key;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zctx, &key) == FAILURE) {
+		RETURN_FALSE;
+	}
+	GET_CTX(zctx, ctx);
+
+	RETURN_LONG(dogma_remove_area_beacon(ctx, (dogma_key_t)key));
 }
 
 
