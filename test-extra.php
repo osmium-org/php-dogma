@@ -41,7 +41,7 @@ assert(dogma_get_location_effect_attributes(
 	$duration, $tracking, $discharge,
 	$range, $falloff, $usagechance
 ) === DOGMA_OK);
-assert($falloff === 7500.0);
+assert($falloff === 11287.5);
 assert($range === 1200.0);
 assert($discharge === 0.0);
 

@@ -280,6 +280,13 @@ ZEND_ARG_INFO(0, attributeid)
 ZEND_ARG_INFO(1, out)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_get_area_beacon_attribute, 0)
+ZEND_ARG_INFO(0, context)
+ZEND_ARG_INFO(0, key)
+ZEND_ARG_INFO(0, attributeid)
+ZEND_ARG_INFO(1, out)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO(arginfo_get_character_attribute, 0)
 ZEND_ARG_INFO(0, context)
 ZEND_ARG_INFO(0, attributeid)
@@ -473,6 +480,7 @@ const zend_function_entry dogma_functions[] = {
 	DEF_DOGMA_FE(set_squad_booster)
 
 	DEF_DOGMA_FE(get_location_attribute)
+	DEF_DOGMA_FE(get_area_beacon_attribute)
 	DEF_DOGMA_FE(get_character_attribute)
 	DEF_DOGMA_FE(get_implant_attribute)
 	DEF_DOGMA_FE(get_skill_attribute)
@@ -571,6 +579,16 @@ static inline int dogma_get_location_from_zval(zval* zloc, dogma_location_t* loc
 			}
 		}
 
+		if(zend_hash_find(Z_ARRVAL_P(zloc), "area_beacon_index",
+		                  sizeof("area_beacon_index"), (void**)&val) == SUCCESS) {
+			if(Z_TYPE_PP(val) == IS_LONG) {
+				loc->area_beacon_index = (dogma_key_t)Z_LVAL_PP(val);
+			} else {
+				zend_error(E_WARNING, "area_beacon_index is not an integer");
+				success = 0;
+			}
+		}
+
 		if(zend_hash_find(Z_ARRVAL_P(zloc), "skill_typeid",
 		                  sizeof("skill_typeid"), (void**)&val) == SUCCESS) {
 			if(Z_TYPE_PP(val) == IS_LONG) {
@@ -622,6 +640,7 @@ PHP_MINIT_FUNCTION(dogma) {
 	DEF_DOGMA_CONSTANT(DOGMA_LOC_Module);
 	DEF_DOGMA_CONSTANT(DOGMA_LOC_Charge);
 	DEF_DOGMA_CONSTANT(DOGMA_LOC_Drone);
+	DEF_DOGMA_CONSTANT(DOGMA_LOC_Area_Beacon);
 
 	DEF_DOGMA_CONSTANT(DOGMA_STATE_Unplugged);
 	DEF_DOGMA_CONSTANT(DOGMA_STATE_Offline);
@@ -1300,6 +1319,26 @@ ZEND_FUNCTION(dogma_get_location_attribute) {
 	GET_CTX(zctx, ctx);
 
 	ret = dogma_get_location_attribute(ctx, loc, (dogma_attributeid_t)attribute, &out);
+	convert_to_null(zout);
+	ZVAL_DOUBLE(zout, out);
+	RETURN_LONG(ret);
+}
+
+ZEND_FUNCTION(dogma_get_area_beacon_attribute) {
+	zval* zctx;
+	dogma_context_t* ctx;
+	long key;
+	long attribute;
+	zval* zout;
+	double out;
+	int ret;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rllz", &zctx, &key, &attribute, &zout) == FAILURE) {
+		RETURN_FALSE;
+	}
+	GET_CTX(zctx, ctx);
+
+	ret = dogma_get_area_beacon_attribute(ctx, (dogma_key_t)key, (dogma_attributeid_t)attribute, &out);
 	convert_to_null(zout);
 	ZVAL_DOUBLE(zout, out);
 	RETURN_LONG(ret);

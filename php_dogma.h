@@ -89,6 +89,7 @@ ZEND_FUNCTION(dogma_set_wing_booster);
 ZEND_FUNCTION(dogma_set_squad_booster);
 
 ZEND_FUNCTION(dogma_get_location_attribute);
+ZEND_FUNCTION(dogma_get_area_beacon_attribute);
 ZEND_FUNCTION(dogma_get_character_attribute);
 ZEND_FUNCTION(dogma_get_implant_attribute);
 ZEND_FUNCTION(dogma_get_skill_attribute);
