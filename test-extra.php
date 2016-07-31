@@ -13,6 +13,12 @@ dogma_get_affectors($ctx, $mloc, $affectors);
 
 dogma_set_ship($ctx, TYPE_Rifter);
 dogma_get_affectors($ctx, $mloc, $affectorswithship);
+assert(isset($affectorswithship[0]['id']));
+assert(isset($affectorswithship[0]['destid']));
+assert(isset($affectorswithship[0]['value']));
+assert(isset($affectorswithship[0]['operator']));
+assert(isset($affectorswithship[0]['order']));
+assert(isset($affectorswithship[0]['flags']));
 
 /* The Rifter should add two modifiers: turret damage and turret tracking */
 assert(count($affectorswithship) === count($affectors) + 2);
@@ -50,6 +56,13 @@ assert(dogma_get_capacitor($ctx, true, $delta, $stable, $p) === DOGMA_OK);
 assert($delta < 0.0);
 assert($stable === true);
 assert($p === 100.0);
+
+assert(dogma_get_capacitor_all($ctx, false, $caps) === DOGMA_OK);
+assert(($hc = dogma_get_hashcode($ctx)) !== false);
+assert(isset($caps[$hc]['capacity']));
+assert(isset($caps[$hc]['delta']));
+assert(isset($caps[$hc]['stable']));
+assert(isset($caps[$hc]['stable_fraction']));
 
 
 

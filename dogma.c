@@ -1,5 +1,5 @@
 /* php-dogma
- * Copyright (C) 2013, 2015 Romain "Artefact2" Dalmaso <artefact2@gmail.com>
+ * Copyright (C) 2013, 2015, 2016 Romain "Artefact2" Dalmaso <artefact2@gmail.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -30,8 +30,7 @@
 #define DEF_DOGMA_FE(x) ZEND_FE(dogma_ ## x, arginfo_ ## x)
 #define DEF_DOGMA_CONSTANT(x) REGISTER_LONG_CONSTANT(#x, x, CONST_CS | CONST_PERSISTENT | CONST_CT_SUBST)
 
-#define GET_CTX(zctx, ctx) ZEND_FETCH_RESOURCE((ctx), dogma_context_t*, &(zctx), -1, \
-                                               "Dogma context", le_dogma_context)
+#define GET_CTX(zctx, ctx) ((ctx) = (dogma_context_t*)zend_fetch_resource(Z_RES_P(zctx), "Dogma context", le_dogma_context))
 #define GET_CTX_NULLABLE(zctx, ctx) do {	  \
 		if(Z_TYPE_P(zctx) == IS_RESOURCE) { \
 			GET_CTX(zctx, ctx); \
@@ -41,8 +40,7 @@
 			RETURN_FALSE; \
 		} \
 	} while(0)
-#define GET_FCTX(zfctx, fctx) ZEND_FETCH_RESOURCE((fctx), dogma_fleet_context_t*, &(zfctx), -1, \
-                                                  "Dogma fleet context", le_dogma_fleet_context)
+#define GET_FCTX(zfctx, fctx) ((fctx) = (dogma_fleet_context_t*)zend_fetch_resource(Z_RES_P(zfctx), "Dogma fleet context", le_dogma_fleet_context))
 
 static int le_dogma_context;
 static int le_dogma_fleet_context;
@@ -531,12 +529,12 @@ ZEND_GET_MODULE(dogma)
 
 
 
-static void dogma_context_dtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
+static void dogma_context_dtor(zend_resource* rsrc TSRMLS_DC) {
 	dogma_context_t* ctx = rsrc->ptr;
 	dogma_free_context(ctx); /* XXX: assuming this always returns DOGMA_OK (it does) */
 }
 
-static void dogma_fleet_context_dtor(zend_rsrc_list_entry* rsrc TSRMLS_DC) {
+static void dogma_fleet_context_dtor(zend_resource* rsrc TSRMLS_DC) {
 	dogma_fleet_context_t* fctx = rsrc->ptr;
 	dogma_free_fleet_context(fctx); /* XXX: see above */
 }
@@ -545,11 +543,11 @@ static inline int dogma_get_location_from_zval(zval* zloc, dogma_location_t* loc
 	int success = 1;
 
 	if(Z_TYPE_P(zloc) == IS_ARRAY) {
-		zval** val;
+		zval* val;
 
-		if(zend_hash_index_find(Z_ARRVAL_P(zloc), 0, (void**)&val) == SUCCESS) {
-			if(Z_TYPE_PP(val) == IS_LONG) {
-				loc->type = (dogma_location_type_t)Z_LVAL_PP(val);
+		if((val = zend_hash_index_find(Z_ARRVAL_P(zloc), 0)) != NULL) {
+			if(Z_TYPE_P(val) == IS_LONG) {
+				loc->type = (dogma_location_type_t)Z_LVAL_P(val);
 			} else {
 				zend_error(E_WARNING, "location type is not an integer");
 				success = 0;
@@ -559,50 +557,45 @@ static inline int dogma_get_location_from_zval(zval* zloc, dogma_location_t* loc
 			success = 0;
 		}
 
-		if(zend_hash_find(Z_ARRVAL_P(zloc), "implant_index",
-		                  sizeof("implant_index"), (void**)&val) == SUCCESS) {
-			if(Z_TYPE_PP(val) == IS_LONG) {
-				loc->implant_index = (dogma_key_t)Z_LVAL_PP(val);
+		if((val = zend_hash_str_find(Z_ARRVAL_P(zloc), "implant_index", sizeof("implant_index")-1)) != NULL) {
+			if(Z_TYPE_P(val) == IS_LONG) {
+				loc->implant_index = (dogma_key_t)Z_LVAL_P(val);
 			} else {
 				zend_error(E_WARNING, "implant_index is not an integer");
 				success = 0;
 			}
 		}
 
-		if(zend_hash_find(Z_ARRVAL_P(zloc), "module_index",
-		                  sizeof("module_index"), (void**)&val) == SUCCESS) {
-			if(Z_TYPE_PP(val) == IS_LONG) {
-				loc->module_index = (dogma_key_t)Z_LVAL_PP(val);
+		if((val = zend_hash_str_find(Z_ARRVAL_P(zloc), "module_index", sizeof("module_index")-1)) != NULL) {
+			if(Z_TYPE_P(val) == IS_LONG) {
+				loc->module_index = (dogma_key_t)Z_LVAL_P(val);
 			} else {
 				zend_error(E_WARNING, "module_index is not an integer");
 				success = 0;
 			}
 		}
 
-		if(zend_hash_find(Z_ARRVAL_P(zloc), "area_beacon_index",
-		                  sizeof("area_beacon_index"), (void**)&val) == SUCCESS) {
-			if(Z_TYPE_PP(val) == IS_LONG) {
-				loc->area_beacon_index = (dogma_key_t)Z_LVAL_PP(val);
+		if((val = zend_hash_str_find(Z_ARRVAL_P(zloc), "area_beacon_index", sizeof("area_beacon_index")-1)) != NULL) {
+			if(Z_TYPE_P(val) == IS_LONG) {
+				loc->area_beacon_index = (dogma_key_t)Z_LVAL_P(val);
 			} else {
 				zend_error(E_WARNING, "area_beacon_index is not an integer");
 				success = 0;
 			}
 		}
 
-		if(zend_hash_find(Z_ARRVAL_P(zloc), "skill_typeid",
-		                  sizeof("skill_typeid"), (void**)&val) == SUCCESS) {
-			if(Z_TYPE_PP(val) == IS_LONG) {
-				loc->skill_typeid = (dogma_key_t)Z_LVAL_PP(val);
+		if((val = zend_hash_str_find(Z_ARRVAL_P(zloc), "skill_typeid", sizeof("skill_typeid")-1)) != NULL) {
+			if(Z_TYPE_P(val) == IS_LONG) {
+				loc->skill_typeid = (dogma_key_t)Z_LVAL_P(val);
 			} else {
 				zend_error(E_WARNING, "skill_typeid is not an integer");
 				success = 0;
 			}
 		}
 
-		if(zend_hash_find(Z_ARRVAL_P(zloc), "drone_typeid",
-		                  sizeof("drone_typeid"), (void**)&val) == SUCCESS) {
-			if(Z_TYPE_PP(val) == IS_LONG) {
-				loc->drone_typeid = (dogma_key_t)Z_LVAL_PP(val);
+		if((val = zend_hash_str_find(Z_ARRVAL_P(zloc), "drone_typeid", sizeof("drone_typeid")-1)) != NULL) {
+			if(Z_TYPE_P(val) == IS_LONG) {
+				loc->drone_typeid = (dogma_key_t)Z_LVAL_P(val);
 			} else {
 				zend_error(E_WARNING, "drone_typeid is not an integer");
 				success = 0;
@@ -681,9 +674,9 @@ PHP_MINFO_FUNCTION(dogma) {
 ZEND_FUNCTION(dogma_init_context) {
 	zval* zctx;
 	dogma_context_t* ctx;
-	int ret, res;
+	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &zctx) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z/", &zctx) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -691,8 +684,7 @@ ZEND_FUNCTION(dogma_init_context) {
 
 	if(ret == DOGMA_OK) {
 		convert_to_null(zctx);
-		res = ZEND_REGISTER_RESOURCE(NULL, ctx, le_dogma_context);
-		ZVAL_RESOURCE(zctx, res);
+		ZVAL_RES(zctx, zend_register_resource(ctx, le_dogma_context));
 	}
 
 	RETURN_LONG(ret);
@@ -704,22 +696,22 @@ ZEND_FUNCTION(dogma_free_context) {
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zctx) == FAILURE) {
 		RETURN_FALSE;
 	}
-	zend_list_delete(Z_LVAL_P(zctx));
+	zend_list_close(Z_RES_P(zctx));
 	RETURN_LONG(DOGMA_OK);
 }
 
 ZEND_FUNCTION(dogma_get_hashcode) {
-	zval* zresource;
-	int type;
+	zval* zctx;
+	long type;
 	void* ptr;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zresource) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zctx) == FAILURE) {
 		RETURN_FALSE;
 	}
 
-	if((ptr = zend_list_find(Z_RESVAL_P(zresource), &type))
-	   && (type == le_dogma_context || type == le_dogma_fleet_context)) {
-		RETURN_LONG((intptr_t)ptr);
+	type = Z_RES_P(zctx)->type;	
+	if(type == le_dogma_context || type == le_dogma_fleet_context) {
+		RETURN_LONG((intptr_t)(Z_RES_P(zctx)->ptr));
 	}
 
 	RETURN_FALSE;
@@ -739,7 +731,7 @@ ZEND_FUNCTION(dogma_add_area_beacon) {
 	dogma_key_t key;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz", &zctx, &implant, &zkey) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz/", &zctx, &implant, &zkey) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -778,7 +770,7 @@ ZEND_FUNCTION(dogma_add_implant) {
 	dogma_key_t key;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz", &zctx, &implant, &zkey) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz/", &zctx, &implant, &zkey) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -876,7 +868,7 @@ ZEND_FUNCTION(dogma_add_module) {
 	dogma_key_t key;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz", &zctx, &typeid, &zkey) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz/", &zctx, &typeid, &zkey) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -896,7 +888,7 @@ ZEND_FUNCTION(dogma_add_module_s) {
 	long state;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlzl", &zctx, &typeid, &zkey, &state) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz/l", &zctx, &typeid, &zkey, &state) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -916,7 +908,7 @@ ZEND_FUNCTION(dogma_add_module_c) {
 	long charge;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlzl", &zctx, &typeid, &zkey, &charge) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz/l", &zctx, &typeid, &zkey, &charge) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -937,7 +929,7 @@ ZEND_FUNCTION(dogma_add_module_sc) {
 	long charge;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlzll", &zctx, &typeid, &zkey, &state, &charge) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz/ll", &zctx, &typeid, &zkey, &state, &charge) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -1122,9 +1114,9 @@ ZEND_FUNCTION(dogma_clear_target) {
 ZEND_FUNCTION(dogma_init_fleet_context) {
 	zval* zfctx;
 	dogma_fleet_context_t* fctx;
-	int ret, res;
+	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &zfctx) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z/", &zfctx) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -1132,8 +1124,7 @@ ZEND_FUNCTION(dogma_init_fleet_context) {
 
 	if(ret == DOGMA_OK) {
 		convert_to_null(zfctx);
-		res = ZEND_REGISTER_RESOURCE(NULL, fctx, le_dogma_fleet_context);
-		ZVAL_RESOURCE(zfctx, res);
+		ZVAL_RES(zfctx, zend_register_resource(fctx, le_dogma_fleet_context));
 	}
 
 	RETURN_LONG(ret);
@@ -1145,7 +1136,7 @@ ZEND_FUNCTION(dogma_free_fleet_context) {
 	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zfctx) == FAILURE) {
 		RETURN_FALSE;
 	}
-	zend_list_delete(Z_LVAL_P(zfctx));
+	zend_list_close(Z_RES_P(zfctx));
 	RETURN_LONG(DOGMA_OK);
 }
 
@@ -1231,7 +1222,7 @@ ZEND_FUNCTION(dogma_remove_fleet_member) {
 	bool found;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrz", &zfctx, &zctx, &zfound) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrz/", &zfctx, &zctx, &zfound) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_FCTX(zfctx, fctx);
@@ -1310,7 +1301,7 @@ ZEND_FUNCTION(dogma_get_location_attribute) {
 	double out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzlz", &zctx, &zloc, &attribute, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzlz/", &zctx, &zloc, &attribute, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 	if(!dogma_get_location_from_zval(zloc, &loc TSRMLS_CC)) {
@@ -1333,7 +1324,7 @@ ZEND_FUNCTION(dogma_get_area_beacon_attribute) {
 	double out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rllz", &zctx, &key, &attribute, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rllz/", &zctx, &key, &attribute, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -1352,7 +1343,7 @@ ZEND_FUNCTION(dogma_get_character_attribute) {
 	double out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz", &zctx, &attribute, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz/", &zctx, &attribute, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -1372,7 +1363,7 @@ ZEND_FUNCTION(dogma_get_implant_attribute) {
 	double out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rllz", &zctx, &key, &attribute, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rllz/", &zctx, &key, &attribute, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -1392,7 +1383,7 @@ ZEND_FUNCTION(dogma_get_skill_attribute) {
 	double out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rllz", &zctx, &skill, &attribute, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rllz/", &zctx, &skill, &attribute, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -1411,7 +1402,7 @@ ZEND_FUNCTION(dogma_get_ship_attribute) {
 	double out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz", &zctx, &attribute, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz/", &zctx, &attribute, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -1431,7 +1422,7 @@ ZEND_FUNCTION(dogma_get_module_attribute) {
 	double out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rllz", &zctx, &key, &attribute, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rllz/", &zctx, &key, &attribute, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -1451,7 +1442,7 @@ ZEND_FUNCTION(dogma_get_charge_attribute) {
 	double out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rllz", &zctx, &key, &attribute, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rllz/", &zctx, &key, &attribute, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -1471,7 +1462,7 @@ ZEND_FUNCTION(dogma_get_drone_attribute) {
 	double out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rllz", &zctx, &drone, &attribute, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rllz/", &zctx, &drone, &attribute, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -1498,7 +1489,7 @@ ZEND_FUNCTION(dogma_get_chance_based_effect_chance) {
 	double out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzlz", &zctx, &zloc, &effect, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzlz/", &zctx, &zloc, &effect, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 	if(!dogma_get_location_from_zval(zloc, &loc TSRMLS_CC)) {
@@ -1529,7 +1520,7 @@ ZEND_FUNCTION(dogma_get_affectors) {
 	char operator[2];
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzz", &zctx, &zloc, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzz/", &zctx, &zloc, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 	if(!dogma_get_location_from_zval(zloc, &loc TSRMLS_CC)) {
@@ -1546,17 +1537,16 @@ ZEND_FUNCTION(dogma_get_affectors) {
 
 	for(size_t i = 0; i < naffectors; ++i) {
 		dogma_simple_affector_t* affector = list + i;
-		zval* arr;
-		MAKE_STD_ZVAL(arr);
-		array_init_size(arr, 6);
+		zval arr;
+		array_init_size(&arr, 6);
 		snprintf(operator, 2, "%c", affector->operator);
-		add_assoc_long_ex(arr, "id", sizeof("id"), affector->id);
-		add_assoc_long_ex(arr, "destid", sizeof("destid"), affector->destid);
-		add_assoc_double_ex(arr, "value", sizeof("value"), affector->value);
-		add_assoc_string_ex(arr, "operator", sizeof("operator"), operator, 1);
-		add_assoc_long_ex(arr, "order", sizeof("order"), affector->order);
-		add_assoc_long_ex(arr, "flags", sizeof("flags"), affector->flags);
-		add_next_index_zval(zout, arr);
+		add_assoc_long_ex(&arr, "id", sizeof("id")-1, affector->id);
+		add_assoc_long_ex(&arr, "destid", sizeof("destid")-1, affector->destid);
+		add_assoc_double_ex(&arr, "value", sizeof("value")-1, affector->value);
+		add_assoc_string_ex(&arr, "operator", sizeof("operator")-1, operator);
+		add_assoc_long_ex(&arr, "order", sizeof("order")-1, affector->order);
+		add_assoc_long_ex(&arr, "flags", sizeof("flags")-1, affector->flags);
+		add_next_index_zval(zout, &arr);
 	}
 
 	dogma_free_affector_list(list);
@@ -1577,7 +1567,7 @@ ZEND_FUNCTION(dogma_type_has_effect) {
 	bool out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lllz", &type, &state, &effect, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lllz/", &type, &state, &effect, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -1593,7 +1583,7 @@ ZEND_FUNCTION(dogma_type_has_active_effects) {
 	bool out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lz", &type, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lz/", &type, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -1609,7 +1599,7 @@ ZEND_FUNCTION(dogma_type_has_overload_effects) {
 	bool out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lz", &type, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lz/", &type, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -1625,7 +1615,7 @@ ZEND_FUNCTION(dogma_type_has_projectable_effects) {
 	bool out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lz", &type, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "lz/", &type, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -1642,7 +1632,7 @@ ZEND_FUNCTION(dogma_type_base_attribute) {
 	double out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "llz", &type, &attribute, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "llz/", &type, &attribute, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -1666,7 +1656,7 @@ ZEND_FUNCTION(dogma_get_number_of_module_cycles_before_reload) {
 	int num_cycles;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz", &zctx, &key, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlz/", &zctx, &key, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -1694,7 +1684,7 @@ ZEND_FUNCTION(dogma_get_capacitor_all) {
 	dogma_simple_capacitor_t* list;
 	size_t len;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rbz", &zctx, &reload, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rbz/", &zctx, &reload, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 	GET_CTX(zctx, ctx);
@@ -1708,18 +1698,17 @@ ZEND_FUNCTION(dogma_get_capacitor_all) {
 
 	for(size_t i = 0; i < len; ++i) {
 		dogma_simple_capacitor_t* pool = list + i;
-		zval* arr;
-		MAKE_STD_ZVAL(arr);
-		array_init_size(arr, 4);
-		add_assoc_double_ex(arr, "capacity", sizeof("capacity"), pool->capacity);
-		add_assoc_double_ex(arr, "delta", sizeof("delta"), pool->delta);
-		add_assoc_bool_ex(arr, "stable", sizeof("stable"), pool->stable);
+		zval arr;
+		array_init_size(&arr, 4);
+		add_assoc_double_ex(&arr, "capacity", sizeof("capacity")-1, pool->capacity);
+		add_assoc_double_ex(&arr, "delta", sizeof("delta")-1, pool->delta);
+		add_assoc_bool_ex(&arr, "stable", sizeof("stable")-1, pool->stable);
 		if(pool->stable) {
-			add_assoc_double_ex(arr, "stable_fraction", sizeof("stable_fraction"), pool->stable_fraction);
+			add_assoc_double_ex(&arr, "stable_fraction", sizeof("stable_fraction")-1, pool->stable_fraction);
 		} else {
-			add_assoc_double_ex(arr, "depletion_time", sizeof("depletion_time"), pool->depletion_time);
+			add_assoc_double_ex(&arr, "depletion_time", sizeof("depletion_time")-1, pool->depletion_time);
 		}
-		add_index_zval(zout, (intptr_t)pool->context, arr);
+		add_index_zval(zout, (intptr_t)pool->context, &arr);
 	}
 
 	dogma_free_capacitor_list(list);
@@ -1738,7 +1727,7 @@ ZEND_FUNCTION(dogma_get_capacitor) {
 	double param;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rbzzz", &zctx, &reload,
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rbz/z/z/", &zctx, &reload,
 	                         &zdelta, &zstable, &zparam) == FAILURE) {
 		RETURN_FALSE;
 	}
@@ -1766,7 +1755,7 @@ ZEND_FUNCTION(dogma_get_nth_type_effect_with_attributes) {
 	dogma_effectid_t out;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "llz", &type, &n, &zout) == FAILURE) {
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "llz/", &type, &n, &zout) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -1791,7 +1780,7 @@ ZEND_FUNCTION(dogma_get_location_effect_attributes) {
 	zval* zfuc;
 	int ret;
 
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzlzzzzzz", &zctx, &zloc, &effect,
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzlz/z/z/z/z/z/", &zctx, &zloc, &effect,
 	                         &zdur, &ztra, &zdis, &zran, &zfal, &zfuc) == FAILURE) {
 		RETURN_FALSE;
 	}

@@ -179,9 +179,13 @@ assert(dogma_free_fleet_context($fctx) === DOGMA_OK);
 
 
 
-dogma_init_context($ctx);
-dogma_init_fleet_context($fctx);
-dogma_add_squad_member($fctx, 0, 0, $ctx);
+assert(dogma_init_context($ctx) === DOGMA_OK);
+assert(dogma_init_fleet_context($fctx) === DOGMA_OK);
+assert(gettype($ctx) === 'resource');
+assert(gettype($fctx) === 'resource');
+assert(get_resource_type($ctx) === 'Dogma context');
+assert(get_resource_type($fctx) === 'Dogma fleet context');
+assert(dogma_add_squad_member($fctx, 0, 0, $ctx) === DOGMA_OK);
 
 assert(dogma_free_fleet_context($fctx) === DOGMA_OK);
 assert(dogma_free_context($ctx) === DOGMA_OK); /* Note the reversed order */
